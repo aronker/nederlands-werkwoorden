@@ -145,6 +145,44 @@ const synth = window.speechSynthesis;
 let verbList = [];
 let currentUtterances = [];
 
+function detectBestDutchVoice() {
+    const voices = synth.getVoices();
+    if (!voices.length) return;
+
+    // Pontos nl-NL
+    let voice = voices.find(v => v.lang === "nl-NL");
+
+    // Bármilyen nl-*
+    if (!voice) {
+        voice = voices.find(v => v.lang.toLowerCase().startsWith("nl"));
+    }
+
+    // Google NL preferencia
+    if (!voice) {
+        voice = voices.find(v =>
+            v.name.toLowerCase().includes("dutch") ||
+            v.name.toLowerCase().includes("nederlands")
+        );
+    }
+
+    if (voice) {
+        selectedVoice = voice;
+        console.log("NL voice gevonden:", voice.name);
+    } else {
+        console.warn("⚠️ Geen Nederlandse stem gevonden.");
+        selectedVoice = null;
+    }
+}
+
+// Android/Chrome miatt kötelező
+if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = detectBestDutchVoice;
+}
+
+detectBestDutchVoice();
+
+
+
 function selectVoice(langPrefix="nl"){
     const voices = synth.getVoices();
     const match = voices.find(v=>v.lang.startsWith(langPrefix));
@@ -153,14 +191,26 @@ function selectVoice(langPrefix="nl"){
 if(speechSynthesis.onvoiceschanged!==undefined){ speechSynthesis.onvoiceschanged = ()=>selectVoice("nl"); }
 selectVoice("nl");
 
-function speak(text, onEnd){
-    if(!text) return;
+function speak(text, onEnd) {
+    if (!text) return;
+
     const u = new SpeechSynthesisUtterance(text);
-    if(selectedVoice) u.voice = selectedVoice;
-    u.pitch = 1; u.rate = 1;
-    if(onEnd) u.onend = onEnd;
-    synth.speak(u);
-    currentUtterances.push(u);
+
+    // 🔥 MINDIG állítsuk be a nyelvet
+    u.lang = "nl-NL";
+
+    if (selectedVoice) {
+        u.voice = selectedVoice;
+    }
+
+    u.pitch = 1;
+    u.rate = 1;
+
+    if (onEnd) u.onend = onEnd;
+
+    // Android bug fix
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
 }
 
 function stopSpeech(){
