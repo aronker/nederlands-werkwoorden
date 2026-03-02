@@ -129,7 +129,7 @@ td[data-label="Werkwoord"] {
             <th>Werkwoord</th>
             <th>Ik</th>
             <th>Jij/Je</th>
-            <th>Hij/Zij</th>
+            <th>Hij/Zij(Ze)</th>
             <th>Wij/We</th>
             <th>Jullie</th>
             <th>Zij/Ze</th>
@@ -198,6 +198,7 @@ function speak(text, onEnd) {
     if (!text) return;
 
     const u = new SpeechSynthesisUtterance(text);
+    const rate = 0.80;
 
     // MINDIG állítsuk be a nyelvet
     u.lang = selectedVoice?.lang || "nl-NL";
@@ -205,7 +206,7 @@ function speak(text, onEnd) {
     if (selectedVoice) u.voice = selectedVoice;
 
     u.pitch = 1;
-    u.rate = 1;
+    u.rate = rate;
 
     if (onEnd) u.onend = onEnd;
 
@@ -290,7 +291,17 @@ function displayVerbs(verbs){
             td.classList.add('conjugation');
             td.setAttribute("data-label", key);
             if(v.type && v.type.toLowerCase()==='irregulier') td.classList.add('irreg-cell');
-            td.addEventListener("click", ()=>speak(v[key]));
+            td.addEventListener("click", function() {
+                const colIndex = this.cellIndex;
+                const headerText = document.querySelector("#verbTable thead tr")
+                    .children[colIndex].textContent.trim();
+
+                if(colIndex === 0) return; // ne olvassa az első oszlopot
+
+                const cellText = this.textContent.trim();
+
+                speak(headerText + ", " + cellText);
+            });
             tr.appendChild(td);
         });
 
