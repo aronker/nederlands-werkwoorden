@@ -335,7 +335,7 @@ function parseCSV(text){
     displayVerbs(verbs);
 }
 
-object.addEventListener("load", "verbs.csv?v=" + new Date().getTime());
+document.addEventListener(DOMContentLoaded, "verbs.csv?v=" + new Date().getTime());
 document.getElementById("csvFile").addEventListener("change", e=>handleFileInput(e.target.files[0]));
 document.getElementById("sortSelector").addEventListener("change", ()=>{
     if(!verbList.length) return;
